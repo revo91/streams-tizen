@@ -28,7 +28,7 @@ export const getGamesList = (url, gameID='') => {
     let response = await fetch(parsedUrl, {
         method: 'GET',
         headers: {
-            'Client-ID': 'an1u57pqifgc1lanxdq4rvng5u6cow'
+            'Client-ID': <YOUR CLIENT ID - TO BE MADE IN DEV TWITCH ACCOUNT>
         }
     })
     let fetchedData = await response.json()
