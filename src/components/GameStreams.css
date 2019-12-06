@@ -1,0 +1,26 @@
+.flexcontainer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: center;
+    margin: 20px;
+}
+
+.flexitems {
+    width: 448px;
+    margin: 10px;
+}
+
+.flexitemtitle {
+    margin-block-start: 0em;
+}
+
+.flexitemlink {
+    text-decoration: none;
+    color: white;
+}
+
+.streamertitle {
+    text-align: right;
+}
