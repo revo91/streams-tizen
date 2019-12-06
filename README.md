@@ -9,7 +9,7 @@ Then filling Client-ID in:
 ```
 /src/actions/manageStreamsList.js
 ```
-App needs to be build using:
+App needs to be built using:
 ```
 yarn build
 ```
