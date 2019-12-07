@@ -28,7 +28,7 @@ export const getGamesList = (url, gameID='') => {
     let response = await fetch(parsedUrl, {
         method: 'GET',
         headers: {
-            'Client-ID': 'an1u57pqifgc1lanxdq4rvng5u6cow'
+            'Client-ID': 'Your twitch app ID'
         }
     })
     let fetchedData = await response.json()
