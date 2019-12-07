@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback } from 'react';
-import './GameStreams.css';
+import '../styles/index.css';
 import {
     Link
 } from "react-router-dom";
@@ -8,10 +8,8 @@ import { getStreamsList, selectStream } from '../actions/manageStreamsList';
 
 function GameStreams(props) {
     const refs = []
-
     const setRef = (ref) => {
         refs.push(ref);
-        //console.log(refs)
     };
 
     useEffect(() => {
@@ -60,9 +58,9 @@ function GameStreams(props) {
     });
 
     useEffect(() => {
-        window.addEventListener('keydown', handleUserKeyPress);
+        document.addEventListener('keydown', handleUserKeyPress);
         return () => {
-            window.removeEventListener('keydown', handleUserKeyPress);
+            document.removeEventListener('keydown', handleUserKeyPress);
         };
     }, [handleUserKeyPress]);
 
