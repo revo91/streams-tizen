@@ -1,11 +1,12 @@
 
-import React, { useEffect, useCallback, useRef } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import '../styles/index.css';
 import {
     Link
 } from "react-router-dom";
 import { connect } from 'react-redux';
 import { getGamesList, selectGame } from '../actions/manageStreamsList';
+import ErrorScreen from './Error';
 
 function Homescreen(props) {
     const refs = [];
@@ -18,7 +19,7 @@ function Homescreen(props) {
     }, []);
 
     const handleUserKeyPress = useCallback(event => {
-        const { key, keyCode } = event;
+        const { keyCode } = event;
         switch (keyCode) {
             case 37: //LEFT arrow
                 if (props.gamesList[props.selectedGame - 1] !== undefined) {
@@ -29,7 +30,6 @@ function Homescreen(props) {
                 }
                 break;
             case 38: //UP arrow
-
                 break;
             case 39: //RIGHT arrow
                 if (props.gamesList[props.selectedGame + 1] !== undefined) {
@@ -42,7 +42,6 @@ function Homescreen(props) {
             case 40: //DOWN arrow
                 break;
             case 13: //OK button
-                //props.history.push(`/streams/${props.gamesList[props.selectedGame].id}`)
                 setTimeout(() => {
                     refs[props.selectedGame].click()
                 }, 0)
@@ -59,21 +58,23 @@ function Homescreen(props) {
     });
 
     useEffect(() => {
-        window.addEventListener('keydown', handleUserKeyPress);
+        document.addEventListener('keydown', handleUserKeyPress);
         return () => {
-            window.removeEventListener('keydown', handleUserKeyPress);
+            document.removeEventListener('keydown', handleUserKeyPress);
         };
     }, [handleUserKeyPress]);
 
     return (
         <div className="flexcontainer">
-            {props.gamesList.length > 0 ? props.gamesList.map((game, index) => {
+            {props.syncError !== true ? props.gamesList ? props.gamesList.length > 0 ? props.gamesList.map((game, index) => {
                 let gameImageUrl = game.box_art_url.replace('{width}', '285').replace('{height}', '380');
-                return <Link ref={setRef} className="flexitemlink" key={game.id} to={`/streams/${game.id}`}>
-                    <div className={`flexitemscategories ${index === props.selectedGame ? 'selected' : ''}`} key={game.id}><img src={gameImageUrl} />
-                        <h3 className="flexitemtitle">{game.name}</h3></div></Link>
-            }) : null}
-
+                return <Link ref={setRef} className="flexitemlink" key={game.id} to={{ pathname: `/streams/${game.name}/`, state: { gameID: game.id, gameName: game.name } }}>
+                    <div className={`flexitemscategories ${index === props.selectedGame ? 'selected' : ''}`} key={game.id}>
+                        <img src={gameImageUrl} alt={`${game.name}`} />
+                        <h3 className="flexitemtitle">{game.name}</h3>
+                    </div>
+                </Link>
+            }) : null : <ErrorScreen /> : <ErrorScreen />}
         </div>
     )
 }
@@ -81,7 +82,8 @@ function Homescreen(props) {
 const mapStateToProps = (state) => {
     return {
         gamesList: state.gamesListReducer.gamesList,
-        selectedGame: state.gamesListReducer.selectedGame
+        selectedGame: state.gamesListReducer.selectedGame,
+        syncError: state.gamesListReducer.syncError,
     }
 }
 

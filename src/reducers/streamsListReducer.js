@@ -1,8 +1,9 @@
-import { SET_STREAMS_LIST, SELECT_STREAM } from '../actions/manageStreamsList';
+import { SET_STREAMS_LIST, SELECT_STREAM, STREAMS_LIST_SYNC_ERROR } from '../actions/manageStreamsList';
 
 const initialState = {
     streamsList: [],
-    selectedStream: 0
+    selectedStream: 0,
+    syncError: false
 }
 
 export const streamsListReducer = (state = initialState, action) => {
@@ -16,6 +17,11 @@ export const streamsListReducer = (state = initialState, action) => {
             return {
                 ...state,
                 selectedStream: action.index
+            }
+        case STREAMS_LIST_SYNC_ERROR:
+            return {
+                ...state,
+                syncError: action.error
             }
         default:
             return state

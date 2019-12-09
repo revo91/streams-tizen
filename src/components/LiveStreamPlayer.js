@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom'
+import React, { useEffect } from 'react';
 import '../styles/index.css';
 
-export function LiveStreamPlayer(props) {
+function LiveStreamPlayer(props) {
     let playerRef = React.createRef();
     useEffect(() => {
         var options = {
@@ -10,7 +9,6 @@ export function LiveStreamPlayer(props) {
             height: document.documentElement.clientHeight,
             channel: props.match.params.user_name,
         };
-
         const twitchPlayer = new window.Twitch.Player('player', options);
         twitchPlayer.setVolume(1.0);
         twitchPlayer.addEventListener(window.Twitch.Player.PLAYING, () => {
@@ -49,8 +47,10 @@ export function LiveStreamPlayer(props) {
 
     return (
         <div>
-            <div ref={playerRef} id='player' className='container'></div>
-            <div className='bar'></div>
+            <div ref={playerRef} id='player' className='playercontainer'></div>
+            <div className='overlay'></div>
         </div>
     )
 }
+
+export default LiveStreamPlayer

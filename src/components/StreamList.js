@@ -5,19 +5,20 @@ import {
 } from "react-router-dom";
 import { connect } from 'react-redux';
 import { getStreamsList, selectStream } from '../actions/manageStreamsList';
+import ErrorScreen from './Error';
 
-function GameStreams(props) {
+function StreamList(props) {
     const refs = []
     const setRef = (ref) => {
         refs.push(ref);
     };
 
     useEffect(() => {
-        props.getStreamsList("https://api.twitch.tv/helix/streams?first=100&game_id=", props.match.params.id)
+        props.getStreamsList("https://api.twitch.tv/helix/streams?first=100&game_id=", props.location.state.gameID)
     }, []);
 
     const handleUserKeyPress = useCallback(event => {
-        const { key, keyCode } = event;
+        const { keyCode } = event;
 
         switch (keyCode) {
             case 37: //LEFT arrow
@@ -41,7 +42,6 @@ function GameStreams(props) {
             case 40: //DOWN arrow
                 break;
             case 13: //OK button
-                //props.history.push(`/streams/${props.streamsList[props.selectedStream].user_name}`)
                 setTimeout(() => {
                     refs[props.selectedStream].click()
                 }, 0)
@@ -66,14 +66,16 @@ function GameStreams(props) {
 
     return (
         <div className="flexcontainer">
-            {props.streamsList.length > 0 ? props.streamsList.map((stream, index) => {
+            {props.syncError !== true ? props.streamsList ? props.streamsList.length > 0 ? props.streamsList.map((stream, index) => {
                 let streamImageUrl = stream.thumbnail_url.replace('{width}', '448').replace('{height}', '248');
-                return <Link ref={setRef} className="flexitemlink" key={stream.id} to={`/stream/${stream.user_name}`}>
-                    <div className={`flexitems ${index === props.selectedStream ? 'selected' : ''}`} key={stream.id}><img src={streamImageUrl} />
+                return <Link ref={setRef} className="flexitemlink" key={stream.id} to={`/streams/${props.match.params.game_name}/${stream.user_name}`}>
+                    <div className={`flexitems ${index === props.selectedStream ? 'selected' : ''}`} key={stream.id}>
+                        <img src={streamImageUrl} alt={stream.user_name}/>
                         <h3 className="flexitemtitle">{stream.title}</h3>
                         <p className={'streamertitle'}>{stream.user_name}</p>
-                    </div></Link>
-            }) : null}
+                    </div>
+                    </Link>
+            }) : null : <ErrorScreen /> : <ErrorScreen />}
         </div>
     )
 }
@@ -81,7 +83,8 @@ function GameStreams(props) {
 const mapStateToProps = (state) => {
     return {
         streamsList: state.streamsListReducer.streamsList,
-        selectedStream: state.streamsListReducer.selectedStream
+        selectedStream: state.streamsListReducer.selectedStream,
+        syncError: state.streamsListReducer.syncError
     }
 }
 
@@ -90,4 +93,4 @@ const mapDispatchToProps = {
     selectStream
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(GameStreams);
+export default connect(mapStateToProps, mapDispatchToProps)(StreamList);
