@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback } from 'react';
-import '../styles/index.css';
+import '../styles/index.scss';
 import {
     Link
 } from "react-router-dom";
@@ -8,6 +8,9 @@ import { getStreamsList, selectStream } from '../actions/manageStreamsList';
 import ErrorScreen from './Error';
 
 function StreamList(props) {
+    let numPerRow;
+    let baseOffset;
+    let breakIndex;
     const refs = []
     const setRef = (ref) => {
         refs.push(ref);
@@ -17,11 +20,34 @@ function StreamList(props) {
         props.getStreamsList("https://api.twitch.tv/helix/streams?first=100&game_id=", props.location.state.gameID)
     }, []);
 
+    useEffect(() => {
+        if (refs[0]) {
+            baseOffset = refs[0].offsetTop;
+            breakIndex = refs.findIndex(item => item.offsetTop > baseOffset);
+            numPerRow = (breakIndex === -1 ? refs.length : breakIndex);
+        }
+    }, [refs])
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (refs[0]) {
+                baseOffset = refs[0].offsetTop;
+                breakIndex = refs.findIndex(item => item.offsetTop > baseOffset);
+                numPerRow = (breakIndex === -1 ? refs.length : breakIndex);
+            }
+        }
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [refs]);
+
     const handleUserKeyPress = useCallback(event => {
         const { keyCode } = event;
 
         switch (keyCode) {
             case 37: //LEFT arrow
+            event.preventDefault()
                 if (props.streamsList[props.selectedStream - 1] !== undefined) {
                     props.selectStream(props.selectedStream - 1)
                     setTimeout(() => {
@@ -30,8 +56,19 @@ function StreamList(props) {
                 }
                 break;
             case 38: //UP arrow
+            event.preventDefault()
+                if (props.streamsList[props.selectedStream - numPerRow] !== undefined) {
+                    props.selectStream(props.selectedStream - numPerRow)
+                    setTimeout(() => {
+                        refs[props.selectedStream - numPerRow].scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    })
+                }
+                else if (props.streamsList[0] !== undefined) {
+                    props.selectStream(0);
+                }
                 break;
             case 39: //RIGHT arrow
+            event.preventDefault()
                 if (props.streamsList[props.selectedStream + 1] !== undefined) {
                     props.selectStream(props.selectedStream + 1)
                     setTimeout(() => {
@@ -40,6 +77,16 @@ function StreamList(props) {
                 }
                 break;
             case 40: //DOWN arrow
+            event.preventDefault()
+                if (props.streamsList[props.selectedStream + numPerRow] !== undefined) {
+                    props.selectStream(props.selectedStream + numPerRow)
+                    setTimeout(() => {
+                        refs[props.selectedStream + numPerRow].scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    })
+                }
+                else if (props.streamsList.length >= 0) {
+                    props.selectStream(props.streamsList.length - 1);
+                }
                 break;
             case 13: //OK button
                 setTimeout(() => {
@@ -68,8 +115,8 @@ function StreamList(props) {
         <div className="flexcontainer">
             {props.syncError !== true ? props.streamsList ? props.streamsList.length > 0 ? props.streamsList.map((stream, index) => {
                 let streamImageUrl = stream.thumbnail_url.replace('{width}', '448').replace('{height}', '248');
-                return <Link ref={setRef} className="flexitemlink" key={stream.id} to={`/streams/${props.match.params.game_name}/${stream.user_name}`}>
-                    <div className={`flexitems ${index === props.selectedStream ? 'selected' : ''}`} key={stream.id}>
+                return <Link ref={setRef} className={`flexitemsstreams scale-in-center ${index === props.selectedStream ? 'selected' : ''}`} key={stream.id} to={`/streams/${props.match.params.game_name}/${stream.user_name}`}>
+                    <div key={stream.id}>
                         <img src={streamImageUrl} alt={stream.user_name}/>
                         <h3 className="flexitemtitle">{stream.title}</h3>
                         <p className={'streamertitle'}>{stream.user_name}</p>
@@ -90,7 +137,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = {
     getStreamsList,
-    selectStream
+    selectStream,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(StreamList);
