@@ -114,14 +114,14 @@ body {
     align-items: flex-start;
     align-content: flex-start;
     justify-content: center;
-    margin: 20px;
+    margin: 5px;
+    overflow: auto;
 }
 
 .flexitemscategories {
     transform: scale(0);
     width: 285px;
-    height: 450px;
-    margin: 5px;
+    height: 100%;
     padding: 10px;
     transition: $transitionTime;
     &.scale-in-center {
@@ -135,8 +135,7 @@ body {
 .flexitemsstreams {
     transform: scale(0);
     width: 448px;
-    height: 380px;
-    margin: 5px;
+    height: 100%;
     padding: 10px;
     transition: $transitionTime;
     &.scale-in-center {
@@ -149,6 +148,9 @@ body {
 
 .flexitemtitle {
     margin-block-start: 0em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .selected {
@@ -156,7 +158,12 @@ body {
 }
 
 .streamertitle {
-    text-align: right;
+    float: right;
+    margin: 0px;
+    padding: 5px;
+    border: 2px solid white;
+    border-radius: 10px 10px;
+    background-color: $qualitySelectionContainerBackgroundColor;
 }
 
 .overlay {

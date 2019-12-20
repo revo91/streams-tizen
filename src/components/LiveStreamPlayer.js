@@ -7,7 +7,9 @@ let timeout;
 var twitchPlayer;
 
 function LiveStreamPlayer(props) {
+    let player = React.createRef();
     useEffect(() => {
+        
         var options = {
             width: document.documentElement.clientWidth,
             height: document.documentElement.clientHeight,
@@ -26,6 +28,9 @@ function LiveStreamPlayer(props) {
             twitchPlayer.setMuted(false)
             twitchPlayer.setVolume(1.0);
             props.setPossibleQualities(twitchPlayer.getQualities())
+        });
+        twitchPlayer.addEventListener(window.Twitch.Player.READY, () => {
+            console.log(window.innerHeight)
         });
 
         //event listener for remote control
@@ -85,7 +90,7 @@ function LiveStreamPlayer(props) {
 
     return (
         <React.Fragment>
-            <div id='player' className='playercontainer'></div>
+            <div id='player' className='playercontainer' ref={player}></div>
             <div className={`quality-selection-menu-container ${props.qualitySelectionShown === true ? 'slide-in' : 'slide-out'}`}>
                 {props.qualities.map((quality) => {
                     return <p className={`quality-selection-item${props.qualities[props.selectedQualityIndex].name === quality.name ? '-selected' : ''}`} key={quality.name}>{quality.name}</p>
