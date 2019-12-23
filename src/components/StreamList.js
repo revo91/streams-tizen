@@ -4,8 +4,9 @@ import {
     Link
 } from "react-router-dom";
 import { connect } from 'react-redux';
-import { getStreamsList, selectStream } from '../actions/manageStreamsList';
+import { getStreamsList, selectStream, setStreamsList } from '../actions/manageStreamsList';
 import ErrorScreen from './Error';
+import { FaUserAlt } from 'react-icons/fa';
 
 function StreamList(props) {
     let numPerRow;
@@ -17,7 +18,9 @@ function StreamList(props) {
     };
 
     useEffect(() => {
-        props.getStreamsList("https://api.twitch.tv/helix/streams?first=100&game_id=", props.location.state.gameID)
+        //refresh list
+        props.setStreamsList([])
+        props.getStreamsList("https://api.twitch.tv/helix/streams?first=100&game_id=", props.match.params.game_id)
     }, []);
 
     useEffect(() => {
@@ -115,10 +118,11 @@ function StreamList(props) {
         <div className="flexcontainer">
             {props.syncError !== true ? props.streamsList ? props.streamsList.length > 0 ? props.streamsList.map((stream, index) => {
                 let streamImageUrl = stream.thumbnail_url.replace('{width}', '448').replace('{height}', '248');
-                return <Link ref={setRef} className={`flexitemsstreams scale-in-center ${index === props.selectedStream ? 'selected' : ''}`} key={stream.id} to={`/streams/${props.match.params.game_name}/${stream.user_name}`}>
+                return <Link ref={setRef} className={`flexitemsstreams scale-in-center ${index === props.selectedStream ? 'selected' : ''}`} key={stream.id} to={`/streams/${props.match.params.game_id}/${stream.user_id}`}>
                     <div key={stream.id}>
                         <img src={streamImageUrl} alt={stream.user_name}/>
                         <h3 className="flexitemtitle">{stream.title}</h3>
+                        <p className={'viewercount'}><FaUserAlt/> {stream.viewer_count}</p>
                         <p className={'streamertitle'}>{stream.user_name}</p>
                     </div>
                     </Link>
@@ -138,6 +142,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = {
     getStreamsList,
     selectStream,
+    setStreamsList
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(StreamList);

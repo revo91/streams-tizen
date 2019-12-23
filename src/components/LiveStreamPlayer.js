@@ -9,11 +9,10 @@ var twitchPlayer;
 function LiveStreamPlayer(props) {
     let player = React.createRef();
     useEffect(() => {
-        
         var options = {
             width: document.documentElement.clientWidth,
             height: document.documentElement.clientHeight,
-            channel: props.match.params.user_name,
+            channelId: props.match.params.user_id,
         };
         twitchPlayer = new window.Twitch.Player('player', options);
         if (props.qualities.length > 0) {
@@ -25,13 +24,14 @@ function LiveStreamPlayer(props) {
             twitchPlayer.setQuality('auto')
         }
         twitchPlayer.addEventListener(window.Twitch.Player.PLAYING, () => {
+            
             twitchPlayer.setMuted(false)
             twitchPlayer.setVolume(1.0);
-            props.setPossibleQualities(twitchPlayer.getQualities())
+            props.setPossibleQualities(twitchPlayer.getQualities())         
         });
-        twitchPlayer.addEventListener(window.Twitch.Player.READY, () => {
-            console.log(window.innerHeight)
-        });
+        twitchPlayer.addEventListener(window.Twitch.Player.READY, ()=> {
+            
+        })
 
         //event listener for remote control
         document.addEventListener('keydown', function (e) {
@@ -48,6 +48,7 @@ function LiveStreamPlayer(props) {
                     props.history.goBack();
                     break;
                 default:
+                    console.log(e.keyCode)
                     break;
             }
         });

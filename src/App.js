@@ -11,8 +11,8 @@ function App() {
   return (
     <div>
       <Switch>
-        <Route path="/streams/:game_name/:user_name" component={LiveStreamPlayer} />
-        <Route path="/streams/:game_name" component={StreamList} />
+        <Route path="/streams/:game_id/:user_id" component={LiveStreamPlayer} />
+        <Route path="/streams/:game_id" component={StreamList} />
         <Route path="/" component={Homescreen} />      
       </Switch>
     </div>
