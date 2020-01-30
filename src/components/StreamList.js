@@ -20,6 +20,7 @@ function StreamList(props) {
     useEffect(() => {
         //refresh list
         props.setStreamsList([])
+        //get list of livestreams
         props.getStreamsList("https://api.twitch.tv/helix/streams?first=100&game_id=", props.match.params.game_id)
     }, []);
 
@@ -29,9 +30,6 @@ function StreamList(props) {
             breakIndex = refs.findIndex(item => item.offsetTop > baseOffset);
             numPerRow = (breakIndex === -1 ? refs.length : breakIndex);
         }
-    }, [refs])
-
-    useEffect(() => {
         const handleResize = () => {
             if (refs[0]) {
                 baseOffset = refs[0].offsetTop;
@@ -43,7 +41,7 @@ function StreamList(props) {
         return () => {
             window.removeEventListener('resize', handleResize);
         };
-    }, [refs]);
+    }, [refs])
 
     const handleUserKeyPress = useCallback(event => {
         const { keyCode } = event;
@@ -115,8 +113,8 @@ function StreamList(props) {
     }, [handleUserKeyPress]);
 
     return (
-        <div className="flexcontainer">
-            {props.syncError !== true ? props.streamsList ? props.streamsList.length > 0 ? props.streamsList.map((stream, index) => {
+        <div className={props.syncError !== true ? "flexcontainer" : ""}>
+            {props.syncError !== true ? props.streamsList && props.streamsList.length > 0 ? props.streamsList.map((stream, index) => {
                 let streamImageUrl = stream.thumbnail_url.replace('{width}', '448').replace('{height}', '248');
                 return <Link ref={setRef} className={`flexitemsstreams scale-in-center ${index === props.selectedStream ? 'selected' : ''}`} key={stream.id} to={`/streams/${props.match.params.game_id}/${stream.user_id}`}>
                     <div key={stream.id}>
@@ -126,7 +124,7 @@ function StreamList(props) {
                         <p className={'streamertitle'}>{stream.user_name}</p>
                     </div>
                     </Link>
-            }) : null : <ErrorScreen /> : <ErrorScreen />}
+            }) : null : <ErrorScreen />}
         </div>
     )
 }

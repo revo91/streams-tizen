@@ -11,36 +11,35 @@ export const selectStream = (index) => ({ type: SELECT_STREAM, index });
 export const gameListSyncError = (error) => ({ type: GAME_LIST_SYNC_ERROR, error })
 export const streamsListSyncError = (error) => ({ type: STREAMS_LIST_SYNC_ERROR, error })
 
-export const getGamesList = (url, gameID = '') => {
-    return dispatch => {
+const clientID = 'an1u57pqifgc1lanxdq4rvng5u6cow';
+const headers = {
+    'Client-ID': clientID
+}
+
+export const getGamesList = (url) => {
+    return async dispatch => {
         dispatch(gameListSyncError(false))
-        callTwitchAPI(url, gameID).then(data => {
-            dispatch(setGamesList(data))
-        }).catch(() => {
+        try {
+            let response = await fetch(url, { headers: headers })
+            let fetchedData = await response.json()
+            dispatch(setGamesList(fetchedData.data))
+        }
+        catch(err) {
             dispatch(gameListSyncError(true))
-        })
+        }
     };
 };
 
 export const getStreamsList = (url, gameID = '') => {
-    return dispatch => {
+    return async dispatch => {
         dispatch(streamsListSyncError(false))
-        callTwitchAPI(url, gameID).then(data => {
-            dispatch(setStreamsList(data));
-        }).catch(() => {
+        try {
+            let response = await fetch(`${url}${gameID}`, { headers: headers })
+            let fetchedData = await response.json()
+            dispatch(setStreamsList(fetchedData.data));
+        }
+        catch(err) {
             dispatch(streamsListSyncError(true))
-        })
+        }
     };
 };
-
-async function callTwitchAPI(url, params) {
-    let parsedUrl = `${url}${params}`;
-    let response = await fetch(parsedUrl, {
-        method: 'GET',
-        headers: {
-            'Client-ID': 'an1u57pqifgc1lanxdq4rvng5u6cow'
-        }
-    })
-    let fetchedData = await response.json()
-    return fetchedData.data
-}

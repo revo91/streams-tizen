@@ -19,6 +19,7 @@ export const gamesListReducer = (state = initialState, action) => {
                 selectedGame: action.index
             }
         case GAME_LIST_SYNC_ERROR:
+            console.log(action.error)
             return {
                 ...state,
                 syncError: action.error

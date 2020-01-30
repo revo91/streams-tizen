@@ -5,11 +5,10 @@ import {
     Link
 } from "react-router-dom";
 import { connect } from 'react-redux';
-import { getGamesList, selectGame, setGamesList } from '../actions/manageStreamsList';
+import { getGamesList, selectGame, setGamesList, selectStream } from '../actions/manageStreamsList';
 import ErrorScreen from './Error';
-import { selectStream } from '../actions/manageStreamsList';
 
-function Homescreen(props) {
+export function Homescreen(props) {
     let numPerRow;
     let baseOffset;
     let breakIndex;
@@ -31,9 +30,6 @@ function Homescreen(props) {
             breakIndex = refs.findIndex(item => item.offsetTop > baseOffset);
             numPerRow = (breakIndex === -1 ? refs.length : breakIndex);
         }
-    }, [refs])
-
-    useEffect(() => {
         const handleResize = () => {
             if (refs[0]) {
                 baseOffset = refs[0].offsetTop;
@@ -45,7 +41,7 @@ function Homescreen(props) {
         return () => {
             window.removeEventListener('resize', handleResize);
         };
-    }, [refs]);
+    }, [refs])
 
     const handleUserKeyPress = useCallback(event => {
         const { keyCode } = event;
@@ -54,18 +50,14 @@ function Homescreen(props) {
                 event.preventDefault()
                 if (props.gamesList[props.selectedGame - 1] !== undefined) {
                     props.selectGame(props.selectedGame - 1)
-                    setTimeout(() => {
-                        refs[props.selectedGame - 1].scrollIntoView({ behavior: 'smooth', block: "center" })
-                    }, 0)
+                    refs[props.selectedGame - 1].scrollIntoView({ behavior: 'smooth', block: "center" })
                 }
                 break;
             case 38: //UP arrow
                 event.preventDefault()
                 if (props.gamesList[props.selectedGame - numPerRow] !== undefined) {
                     props.selectGame(props.selectedGame - numPerRow)
-                    setTimeout(() => {
-                        refs[props.selectedGame - numPerRow].scrollIntoView({ behavior: 'smooth', block: 'center' })
-                    })
+                    refs[props.selectedGame - numPerRow].scrollIntoView({ behavior: 'smooth', block: 'center' })
                 }
                 else if (props.gamesList[0] !== undefined) {
                     props.selectGame(0);
@@ -75,18 +67,14 @@ function Homescreen(props) {
                 event.preventDefault()
                 if (props.gamesList[props.selectedGame + 1] !== undefined) {
                     props.selectGame(props.selectedGame + 1)
-                    setTimeout(() => {
-                        refs[props.selectedGame + 1].scrollIntoView({ behavior: 'smooth', block: "center" })
-                    }, 0)
+                    refs[props.selectedGame + 1].scrollIntoView({ behavior: 'smooth', block: "center" })
                 }
                 break;
             case 40: //DOWN arrow
                 event.preventDefault()
                 if (props.gamesList[props.selectedGame + numPerRow] !== undefined) {
                     props.selectGame(props.selectedGame + numPerRow)
-                    setTimeout(() => {
-                        refs[props.selectedGame + numPerRow].scrollIntoView({ behavior: 'smooth', block: 'center' })
-                    })
+                    refs[props.selectedGame + numPerRow].scrollIntoView({ behavior: 'smooth', block: 'center' })
                 }
                 else if (props.gamesList.length >= 0) {
                     props.selectGame(props.gamesList.length - 1);
@@ -116,16 +104,16 @@ function Homescreen(props) {
     }, [handleUserKeyPress]);
 
     return (
-        <div className="flexcontainer">
-            {props.syncError !== true ? props.gamesList ? props.gamesList.length > 0 ? props.gamesList.map((game, index) => {
+        <div className={props.syncError !== true ? "flexcontainer" : ""}>
+            {props.syncError !== true ? props.gamesList && props.gamesList.length > 0 ? props.gamesList.map((game, index) => {
                 let gameImageUrl = game.box_art_url.replace('{width}', '285').replace('{height}', '380');
-                return <Link ref={setRef} className={`flexitemscategories scale-in-center ${index === props.selectedGame ? 'selected' : ''}`} key={game.id} to={{ pathname: `/streams/${game.id}/`}}>
-                    <div key={game.id}>
-                        <img src={gameImageUrl} alt={`${game.name}`} />
+                return <Link ref={setRef} className={`flexitemscategories scale-in-center ${index === props.selectedGame ? 'selected' : ''}`} key={game.id} to={{ pathname: `/streams/${game.id}/`, state: { gameName: game.name} }}>
+                    <div>
+                        <img src={gameImageUrl} alt={`${game.name}`}/>
                         <h3 className="flexitemtitle">{game.name}</h3>
                     </div>
                 </Link>
-            }) : null : <ErrorScreen /> : <ErrorScreen />}
+            }) : null : <ErrorScreen />}
         </div>
     )
 }
