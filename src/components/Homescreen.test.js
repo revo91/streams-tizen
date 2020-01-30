@@ -54,11 +54,4 @@ describe('Homescreen component', () => {
         expect(props.getGamesList).toHaveBeenCalledWith('https://api.twitch.tv/helix/games/top?first=100')
         expect(props.selectStream).toHaveBeenCalledWith(0)
       });
-      it("should calculate number of items per row on window resize", () => {
-        let component;
-        
-        act(() => {
-          component = mount(<BrowserRouter><Homescreen {...props} /></BrowserRouter>);
-        });
-      })
 })

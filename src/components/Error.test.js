@@ -19,6 +19,6 @@ describe('Error component', () => {
         expect(enzymeWrapper.find('h1').hasClass('sadface')).toBe(true)
         expect(enzymeWrapper.find('p').hasClass('errortitle')).toBe(true)
         expect(enzymeWrapper.find('h1').text()).toBe(':(')
-        expect(enzymeWrapper.find('p').text()).toBe('Something went wrong. Check your internet connection and refresh (key up).')
+        expect(enzymeWrapper.find('p').text()).toBe('Something went wrong. Check your internet connection and reload (key up).')
     })
 })
