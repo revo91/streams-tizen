@@ -1,9 +1,10 @@
-import { SET_GAMES_LIST, SELECT_GAME, GAME_LIST_SYNC_ERROR } from '../actions/manageStreamsList';
+import { SET_GAMES_LIST, SELECT_GAME, GAME_LIST_SYNC_ERROR, SET_GAMES_PER_ROW } from '../actions/manageStreamsList';
 
 const initialState = {
     gamesList: [],
     selectedGame: 0,
-    syncError: false
+    syncError: false,
+    gamesPerRow: 1
 }
 
 export const gamesListReducer = (state = initialState, action) => {
@@ -19,10 +20,14 @@ export const gamesListReducer = (state = initialState, action) => {
                 selectedGame: action.index
             }
         case GAME_LIST_SYNC_ERROR:
-            console.log(action.error)
             return {
                 ...state,
                 syncError: action.error
+            }
+        case SET_GAMES_PER_ROW:
+            return {
+                ...state,
+                gamesPerRow: action.num
             }
         default:
             return state

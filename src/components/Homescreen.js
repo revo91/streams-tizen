@@ -5,111 +5,56 @@ import {
     Link
 } from "react-router-dom";
 import { connect } from 'react-redux';
-import { getGamesList, selectGame, setGamesList, selectStream } from '../actions/manageStreamsList';
+import { getGamesList, selectGame, setGamesList, selectStream, setGamesPerRow } from '../actions/manageStreamsList';
 import ErrorScreen from './Error';
+import { useWindowResize, useWindowKeydown } from '../hooks/useWindowEvent';
+import { remoteController } from '../utils/remoteController';
 
 export function Homescreen(props) {
-    let numPerRow;
-    let baseOffset;
-    let breakIndex;
+    const { setGamesList, getGamesList, selectStream, setGamesPerRow, selectedGame, gamesList, selectGame, gamesPerRow, syncError } = props;
     const refs = [];
     const setRef = (ref) => {
         refs.push(ref);
     };
+    const keydownCallback = useCallback((event) => {
+        remoteController(event, refs, gamesList, selectedGame, gamesPerRow, selectGame)
+    }, [refs, gamesList, gamesPerRow, selectedGame, selectGame])
+
+    const windowResizeCallback = useCallback(() => {
+        if (refs[0]) {
+            let baseOffset = refs[0].offsetTop;
+            let breakIndex = refs.findIndex(item => item.offsetTop > baseOffset);
+            let numPerRow = (breakIndex === -1 ? refs.length : breakIndex);
+            setGamesPerRow(numPerRow)
+        }
+    }, [refs, setGamesPerRow])
+
+    useWindowKeydown(keydownCallback)
+    useWindowResize(windowResizeCallback)
 
     useEffect(() => {
         //refresh list
-        props.setGamesList([]);
-        props.getGamesList('https://api.twitch.tv/helix/games/top?first=100');
-        props.selectStream(0);
-    }, []);
+        setGamesList([]);
+        getGamesList('https://api.twitch.tv/helix/games/top?first=100');
+        selectStream(0);
+    }, [setGamesList, getGamesList, selectStream]);
 
     useEffect(() => {
         if (refs[0]) {
-            baseOffset = refs[0].offsetTop;
-            breakIndex = refs.findIndex(item => item.offsetTop > baseOffset);
-            numPerRow = (breakIndex === -1 ? refs.length : breakIndex);
+            let baseOffset = refs[0].offsetTop;
+            let breakIndex = refs.findIndex(item => item.offsetTop > baseOffset);
+            let numPerRow = (breakIndex === -1 ? refs.length : breakIndex);
+            setGamesPerRow(numPerRow)
         }
-        const handleResize = () => {
-            if (refs[0]) {
-                baseOffset = refs[0].offsetTop;
-                breakIndex = refs.findIndex(item => item.offsetTop > baseOffset);
-                numPerRow = (breakIndex === -1 ? refs.length : breakIndex);
-            }
-        }
-        window.addEventListener('resize', handleResize);
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
-    }, [refs])
-
-    const handleUserKeyPress = useCallback(event => {
-        const { keyCode } = event;
-        switch (keyCode) {
-            case 37: //LEFT arrow
-                event.preventDefault()
-                if (props.gamesList[props.selectedGame - 1] !== undefined) {
-                    props.selectGame(props.selectedGame - 1)
-                    refs[props.selectedGame - 1].scrollIntoView({ behavior: 'smooth', block: "center" })
-                }
-                break;
-            case 38: //UP arrow
-                event.preventDefault()
-                if (props.gamesList[props.selectedGame - numPerRow] !== undefined) {
-                    props.selectGame(props.selectedGame - numPerRow)
-                    refs[props.selectedGame - numPerRow].scrollIntoView({ behavior: 'smooth', block: 'center' })
-                }
-                else if (props.gamesList[0] !== undefined) {
-                    props.selectGame(0);
-                }
-                break;
-            case 39: //RIGHT arrow
-                event.preventDefault()
-                if (props.gamesList[props.selectedGame + 1] !== undefined) {
-                    props.selectGame(props.selectedGame + 1)
-                    refs[props.selectedGame + 1].scrollIntoView({ behavior: 'smooth', block: "center" })
-                }
-                break;
-            case 40: //DOWN arrow
-                event.preventDefault()
-                if (props.gamesList[props.selectedGame + numPerRow] !== undefined) {
-                    props.selectGame(props.selectedGame + numPerRow)
-                    refs[props.selectedGame + numPerRow].scrollIntoView({ behavior: 'smooth', block: 'center' })
-                }
-                else if (props.gamesList.length >= 0) {
-                    props.selectGame(props.gamesList.length - 1);
-                }
-                break;
-            case 13: //OK button
-                setTimeout(() => {
-                    refs[props.selectedGame].click()
-                }, 0)
-                break;
-            case 16:
-                break;
-            case 10009: //RETURN button
-                window.location.reload()
-                break;
-            default:
-                console.log('Key code : ' + keyCode);
-                break;
-        }
-    });
-
-    useEffect(() => {
-        document.addEventListener('keydown', handleUserKeyPress);
-        return () => {
-            document.removeEventListener('keydown', handleUserKeyPress);
-        };
-    }, [handleUserKeyPress]);
+    }, [refs, setGamesPerRow])
 
     return (
-        <div className={props.syncError !== true ? "flexcontainer" : ""}>
-            {props.syncError !== true ? props.gamesList && props.gamesList.length > 0 ? props.gamesList.map((game, index) => {
+        <div className={syncError !== true ? "flexcontainer" : ""}>
+            {syncError !== true ? gamesList && gamesList.length > 0 ? gamesList.map((game, index) => {
                 let gameImageUrl = game.box_art_url.replace('{width}', '285').replace('{height}', '380');
-                return <Link ref={setRef} className={`flexitemscategories scale-in-center ${index === props.selectedGame ? 'selected' : ''}`} key={game.id} to={{ pathname: `/streams/${game.id}/`, state: { gameName: game.name} }}>
+                return <Link ref={setRef} className={`flexitemscategories scale-in-center ${index === selectedGame ? 'selected' : ''}`} key={game.id} to={{ pathname: `/streams/${game.id}/`, state: { gameName: game.name } }}>
                     <div>
-                        <img src={gameImageUrl} alt={`${game.name}`}/>
+                        <img src={gameImageUrl} alt={`${game.name}`} />
                         <h3 className="flexitemtitle">{game.name}</h3>
                     </div>
                 </Link>
@@ -123,6 +68,7 @@ const mapStateToProps = (state) => {
         gamesList: state.gamesListReducer.gamesList,
         selectedGame: state.gamesListReducer.selectedGame,
         syncError: state.gamesListReducer.syncError,
+        gamesPerRow: state.gamesListReducer.gamesPerRow
     }
 }
 
@@ -130,7 +76,8 @@ const mapDispatchToProps = {
     getGamesList,
     selectGame,
     selectStream,
-    setGamesList
+    setGamesList,
+    setGamesPerRow
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Homescreen);

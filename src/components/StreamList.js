@@ -4,126 +4,63 @@ import {
     Link
 } from "react-router-dom";
 import { connect } from 'react-redux';
-import { getStreamsList, selectStream, setStreamsList } from '../actions/manageStreamsList';
+import { getStreamsList, selectStream, setStreamsList, setStreamsPerRow } from '../actions/manageStreamsList';
 import ErrorScreen from './Error';
 import { FaUserAlt } from 'react-icons/fa';
+import { useWindowResize, useWindowKeydown } from '../hooks/useWindowEvent';
+import { remoteController } from '../utils/remoteController';
 
 function StreamList(props) {
-    let numPerRow;
-    let baseOffset;
-    let breakIndex;
+    const { getStreamsList, selectStream, setStreamsList, streamsPerRow, streamsList, selectedStream, setStreamsPerRow, syncError } = props;
     const refs = []
     const setRef = (ref) => {
         refs.push(ref);
     };
 
+    const keydownCallback = useCallback((event) => {
+        remoteController(event, refs, streamsList, selectedStream, streamsPerRow, selectStream)
+    }, [refs, streamsList, streamsPerRow, selectedStream, selectStream])
+
+    const windowResizeCallback = useCallback(() => {
+        if (refs[0]) {
+            let baseOffset = refs[0].offsetTop;
+            let breakIndex = refs.findIndex(item => item.offsetTop > baseOffset);
+            let numPerRow = (breakIndex === -1 ? refs.length : breakIndex);
+            setStreamsPerRow(numPerRow);
+        }
+    }, [refs, setStreamsPerRow])
+
+    useWindowKeydown(keydownCallback)
+    useWindowResize(windowResizeCallback)
+
     useEffect(() => {
         //refresh list
-        props.setStreamsList([])
+        setStreamsList([])
         //get list of livestreams
-        props.getStreamsList("https://api.twitch.tv/helix/streams?first=100&game_id=", props.match.params.game_id)
-    }, []);
+        getStreamsList("https://api.twitch.tv/helix/streams?first=100&game_id=", props.match.params.game_id)
+    }, [getStreamsList, setStreamsList, props.match.params.game_id]);
 
     useEffect(() => {
         if (refs[0]) {
-            baseOffset = refs[0].offsetTop;
-            breakIndex = refs.findIndex(item => item.offsetTop > baseOffset);
-            numPerRow = (breakIndex === -1 ? refs.length : breakIndex);
+            let baseOffset = refs[0].offsetTop;
+            let breakIndex = refs.findIndex(item => item.offsetTop > baseOffset);
+            let numPerRow = (breakIndex === -1 ? refs.length : breakIndex);
+            setStreamsPerRow(numPerRow);
         }
-        const handleResize = () => {
-            if (refs[0]) {
-                baseOffset = refs[0].offsetTop;
-                breakIndex = refs.findIndex(item => item.offsetTop > baseOffset);
-                numPerRow = (breakIndex === -1 ? refs.length : breakIndex);
-            }
-        }
-        window.addEventListener('resize', handleResize);
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
-    }, [refs])
-
-    const handleUserKeyPress = useCallback(event => {
-        const { keyCode } = event;
-
-        switch (keyCode) {
-            case 37: //LEFT arrow
-            event.preventDefault()
-                if (props.streamsList[props.selectedStream - 1] !== undefined) {
-                    props.selectStream(props.selectedStream - 1)
-                    setTimeout(() => {
-                        refs[props.selectedStream - 1].scrollIntoView({ behavior: 'smooth', block: "center" })
-                    }, 0)
-                }
-                break;
-            case 38: //UP arrow
-            event.preventDefault()
-                if (props.streamsList[props.selectedStream - numPerRow] !== undefined) {
-                    props.selectStream(props.selectedStream - numPerRow)
-                    setTimeout(() => {
-                        refs[props.selectedStream - numPerRow].scrollIntoView({ behavior: 'smooth', block: 'center' })
-                    })
-                }
-                else if (props.streamsList[0] !== undefined) {
-                    props.selectStream(0);
-                }
-                break;
-            case 39: //RIGHT arrow
-            event.preventDefault()
-                if (props.streamsList[props.selectedStream + 1] !== undefined) {
-                    props.selectStream(props.selectedStream + 1)
-                    setTimeout(() => {
-                        refs[props.selectedStream + 1].scrollIntoView({ behavior: 'smooth', block: "center" })
-                    }, 0)
-                }
-                break;
-            case 40: //DOWN arrow
-            event.preventDefault()
-                if (props.streamsList[props.selectedStream + numPerRow] !== undefined) {
-                    props.selectStream(props.selectedStream + numPerRow)
-                    setTimeout(() => {
-                        refs[props.selectedStream + numPerRow].scrollIntoView({ behavior: 'smooth', block: 'center' })
-                    })
-                }
-                else if (props.streamsList.length >= 0) {
-                    props.selectStream(props.streamsList.length - 1);
-                }
-                break;
-            case 13: //OK button
-                setTimeout(() => {
-                    refs[props.selectedStream].click()
-                }, 0)
-                break;
-            case 16:
-                break;
-            case 10009: //RETURN button
-                props.history.goBack();
-                break;
-            default:
-                console.log('Key code : ' + keyCode);
-                break;
-        }
-    });
-
-    useEffect(() => {
-        document.addEventListener('keydown', handleUserKeyPress);
-        return () => {
-            document.removeEventListener('keydown', handleUserKeyPress);
-        };
-    }, [handleUserKeyPress]);
+    }, [refs, setStreamsPerRow])
 
     return (
-        <div className={props.syncError !== true ? "flexcontainer" : ""}>
-            {props.syncError !== true ? props.streamsList && props.streamsList.length > 0 ? props.streamsList.map((stream, index) => {
+        <div className={syncError !== true ? "flexcontainer" : ""}>
+            {syncError !== true ? streamsList && streamsList.length > 0 ? streamsList.map((stream, index) => {
                 let streamImageUrl = stream.thumbnail_url.replace('{width}', '448').replace('{height}', '248');
                 return <Link ref={setRef} className={`flexitemsstreams scale-in-center ${index === props.selectedStream ? 'selected' : ''}`} key={stream.id} to={`/streams/${props.match.params.game_id}/${stream.user_id}`}>
                     <div key={stream.id}>
-                        <img src={streamImageUrl} alt={stream.user_name}/>
+                        <img src={streamImageUrl} alt={stream.user_name} />
                         <h3 className="flexitemtitle">{stream.title}</h3>
-                        <p className={'viewercount'}><FaUserAlt/> {stream.viewer_count}</p>
+                        <p className={'viewercount'}><FaUserAlt /> {stream.viewer_count}</p>
                         <p className={'streamertitle'}>{stream.user_name}</p>
                     </div>
-                    </Link>
+                </Link>
             }) : null : <ErrorScreen />}
         </div>
     )
@@ -133,14 +70,16 @@ const mapStateToProps = (state) => {
     return {
         streamsList: state.streamsListReducer.streamsList,
         selectedStream: state.streamsListReducer.selectedStream,
-        syncError: state.streamsListReducer.syncError
+        syncError: state.streamsListReducer.syncError,
+        streamsPerRow: state.streamsListReducer.streamsPerRow
     }
 }
 
 const mapDispatchToProps = {
     getStreamsList,
     selectStream,
-    setStreamsList
+    setStreamsList,
+    setStreamsPerRow
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(StreamList);

@@ -111,7 +111,7 @@ $transitionTime: 0.5s;
 
 body {
     margin: 0;
-    font-family: 'Lora', 'Segoe UI', 'Roboto', 'Oxygen',
+    font-family: 'Quicksand', 'Segoe UI', 'Roboto', 'Oxygen',
         'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
         sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -257,6 +257,13 @@ body {
         -webkit-animation: slide-out-top 0.5s forwards;
         animation: slide-out-top 0.5s forwards;
     }
+}
+
+.key {
+    background-color: rgba(238, 238, 238, 0.2);
+    border-radius: 3px;
+    font-family: courier, monospace;
+    padding: 0 3px;
 }
 
 .quality-selection-item {

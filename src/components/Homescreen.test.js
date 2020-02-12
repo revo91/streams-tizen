@@ -53,5 +53,6 @@ describe('Homescreen component', () => {
         expect(props.setGamesList).toHaveBeenCalledTimes(1);
         expect(props.getGamesList).toHaveBeenCalledWith('https://api.twitch.tv/helix/games/top?first=100')
         expect(props.selectStream).toHaveBeenCalledWith(0)
+        expect(props.handleResize).toHaveBeenCalledTimes(1);
       });
 })

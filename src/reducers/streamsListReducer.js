@@ -1,9 +1,10 @@
-import { SET_STREAMS_LIST, SELECT_STREAM, STREAMS_LIST_SYNC_ERROR } from '../actions/manageStreamsList';
+import { SET_STREAMS_LIST, SELECT_STREAM, STREAMS_LIST_SYNC_ERROR, SET_STREAMS_PER_ROW } from '../actions/manageStreamsList';
 
 const initialState = {
     streamsList: [],
     selectedStream: 0,
-    syncError: false
+    syncError: false,
+    streamsPerRow: 1
 }
 
 export const streamsListReducer = (state = initialState, action) => {
@@ -22,6 +23,11 @@ export const streamsListReducer = (state = initialState, action) => {
             return {
                 ...state,
                 syncError: action.error
+            }
+        case SET_STREAMS_PER_ROW:
+            return {
+                ...state,
+                streamsPerRow: action.num
             }
         default:
             return state

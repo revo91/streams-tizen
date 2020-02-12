@@ -1,101 +1,63 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import '../styles/index.scss';
 import { connect } from 'react-redux';
 import { setPossibleQualities, setQuality, setQualitySelectorShown } from '../actions/manageQuality';
-
-let timeout;
-var twitchPlayer;
+import { playerQualityController, playerNavigationController } from '../utils/remoteController';
+import { useWindowKeydown } from '../hooks/useWindowEvent';
 
 function LiveStreamPlayer(props) {
-    let player = React.createRef();
+    const timeout = useRef();
+    const twitchPlayer = useRef();
+    const { qualities, selectedQualityIndex, setQuality, selectedQualityGroup, setQualitySelectorShown, qualitySelectionShown, setPossibleQualities } = props;
+
     useEffect(() => {
-        var options = {
-            width: document.documentElement.clientWidth,
-            height: document.documentElement.clientHeight,
-            channelId: props.match.params.user_id,
-        };
-        twitchPlayer = new window.Twitch.Player('player', options);
-        if (props.qualities.length > 0) {
-            props.setQuality(props.qualities[props.selectedQualityIndex].name, props.selectedQualityIndex, props.qualities[props.selectedQualityIndex].group)
-            twitchPlayer.setQuality(props.selectedQualityGroup)
-        }
-        else {
-            props.setQuality('Auto', 0, 'auto')
-            twitchPlayer.setQuality('auto')
-        }
-        twitchPlayer.addEventListener(window.Twitch.Player.PLAYING, () => {
-            
-            twitchPlayer.setMuted(false)
-            twitchPlayer.setVolume(1.0);
-            props.setPossibleQualities(twitchPlayer.getQualities())         
-        });
-        twitchPlayer.addEventListener(window.Twitch.Player.READY, ()=> {
-            
-        })
-
-        //event listener for remote control
-        document.addEventListener('keydown', function (e) {
-            switch (e.keyCode) {
-                case 13: //OK button
-                    if (twitchPlayer.isPaused()) {
-                        twitchPlayer.play()
-                    }
-                    else {
-                        twitchPlayer.pause()
-                    }
-                    break;
-                case 10009: //RETURN button
-                    props.history.goBack();
-                    break;
-                default:
-                    console.log(e.keyCode)
-                    break;
+        if (twitchPlayer.current._bridge === undefined) {
+            let options = {
+                width: document.documentElement.clientWidth,
+                height: document.documentElement.clientHeight,
+                channelId: props.match.params.user_id,
+            };
+            twitchPlayer.current = new window.Twitch.Player('player', options);
+            if (qualities.length > 0) {
+                setQuality(qualities[selectedQualityIndex].name, selectedQualityIndex, qualities[selectedQualityIndex].group)
+                twitchPlayer.current.setQuality(selectedQualityGroup)
             }
-        });
-    }, [])
-
-    const waitForMoreInputs = () => {
-        props.setQualitySelectorShown(true)
-        clearTimeout(timeout);
-        timeout = setTimeout(() => { props.setQualitySelectorShown(false) }, 3000);
-    }
+            else {
+                setQuality('Auto', 0, 'auto')
+                twitchPlayer.current.setQuality('auto')
+            }
+            twitchPlayer.current.addEventListener(window.Twitch.Player.PLAYING, () => {
+                twitchPlayer.current.setMuted(false)
+                twitchPlayer.current.setVolume(1.0);
+                twitchPlayer.current.getQualities()
+                setPossibleQualities(twitchPlayer.current.getQualities())
+            });
+        }
+    }, [props.history, props.match.params.user_id, qualities, selectedQualityGroup, selectedQualityIndex, setPossibleQualities, setQuality])
 
     const handleQualitySelectionMenu = useCallback(event => {
-        const { keyCode } = event;
-        switch (keyCode) {
-            case 37: //LEFT arrow
-                if (props.qualities[props.selectedQualityIndex - 1] !== undefined) {
-                    props.setQuality(props.qualities[props.selectedQualityIndex - 1].name, props.selectedQualityIndex - 1, props.qualities[props.selectedQualityIndex - 1].group)
-                    twitchPlayer.setQuality(props.qualities[props.selectedQualityIndex - 1].group)
-                }
-                waitForMoreInputs()
-                break;
-            case 39: //RIGHT arrow
-                if (props.qualities[props.selectedQualityIndex + 1] !== undefined) {
-                    props.setQuality(props.qualities[props.selectedQualityIndex + 1].name, props.selectedQualityIndex + 1, props.qualities[props.selectedQualityIndex + 1].group)
-                    twitchPlayer.setQuality(props.qualities[props.selectedQualityIndex + 1].group)
-                }
-                waitForMoreInputs()
-                break;
-            default:
-                break;
+        const waitForMoreInputs = () => {
+            setQualitySelectorShown(true)
+            clearTimeout(timeout.current);
+            timeout.current = setTimeout(() => { setQualitySelectorShown(false) }, 3000);
         }
-    });
+        playerQualityController(event, qualities, selectedQualityIndex, twitchPlayer.current, waitForMoreInputs, setQuality)
+    }, [qualities, selectedQualityIndex, setQuality, setQualitySelectorShown]);
 
-    useEffect(() => {
-        document.addEventListener('keydown', handleQualitySelectionMenu);
-        return () => {
-            document.removeEventListener('keydown', handleQualitySelectionMenu);
-        };
-    }, [handleQualitySelectionMenu]);
+    const handlePlayerNavigation = useCallback(event => {
+        playerNavigationController(event, twitchPlayer.current, props.history)
+    }, [props.history])
+
+    useWindowKeydown(handleQualitySelectionMenu)
+    useWindowKeydown(handlePlayerNavigation)
 
     return (
         <React.Fragment>
-            <div id='player' className='playercontainer' ref={player}></div>
-            <div className={`quality-selection-menu-container ${props.qualitySelectionShown === true ? 'slide-in' : 'slide-out'}`}>
-                {props.qualities.map((quality) => {
-                    return <p className={`quality-selection-item${props.qualities[props.selectedQualityIndex].name === quality.name ? '-selected' : ''}`} key={quality.name}>{quality.name}</p>
-                })}
+            <div id='player' className='playercontainer' ref={twitchPlayer}></div>
+            <div className={`quality-selection-menu-container ${qualitySelectionShown === true ? 'slide-in' : 'slide-out'}`}>
+                {qualities.length > 0 ? qualities.map((quality) => {
+                    return <p className={`quality-selection-item${qualities[selectedQualityIndex].name === quality.name ? '-selected' : ''}`} key={quality.name}>{quality.name}</p>
+                }) : null}
             </div>
             <div className='overlay'></div>
         </React.Fragment>
