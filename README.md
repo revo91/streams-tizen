@@ -1,5 +1,7 @@
 # Application for watching streams from Twitch directly on Samsung Tizen powered TV
-![](demo/streams-tizen.jpg)
+![](demo/streams-tizen1.jpg)
+
+![](demo/streams-tizen2.jpg)
 
 Using react+redux. Required application registration at:
 ```
