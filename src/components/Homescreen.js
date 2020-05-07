@@ -17,7 +17,7 @@ export function Homescreen(props) {
         refs.push(ref);
     };
     const keydownCallback = useCallback((event) => {
-        remoteController(event, refs, gamesList, selectedGame, gamesPerRow, selectGame)
+        remoteController(event, refs, gamesList, selectedGame, gamesPerRow, selectGame, props.history)
     }, [refs, gamesList, gamesPerRow, selectedGame, selectGame])
 
     const windowResizeCallback = useCallback(() => {

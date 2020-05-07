@@ -2,6 +2,7 @@ $textColor: white;
 $selectedColor: darkorange;
 $qualitySelectionContainerBackgroundColor: rgb(145, 70, 255);
 $transitionTime: 0.5s;
+$backgroundColor: #000000;
 
 @-webkit-keyframes slide-out-top {
     0% {
@@ -116,7 +117,7 @@ body {
         sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #292929b0;
+    background-color: $backgroundColor;
 }
 
 .flexcontainer {
@@ -125,7 +126,6 @@ body {
     align-items: flex-start;
     align-content: flex-start;
     justify-content: center;
-    margin: 5px;
     overflow: auto;
 }
 
@@ -216,6 +216,7 @@ body {
     background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
 	background-size: 400% 400%;
     animation: gradient 15s ease infinite;
+    width: 100%
 }
 
 @keyframes gradient {

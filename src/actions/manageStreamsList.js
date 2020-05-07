@@ -1,3 +1,4 @@
+import { clientID, clientSecret } from '../config';
 export const SET_GAMES_LIST = 'SET_GAMES_LIST';
 export const SET_STREAMS_LIST = 'SET_STREAMS_LIST';
 export const SELECT_GAME = 'SELECT_GAME';
@@ -15,35 +16,84 @@ export const streamsListSyncError = (error) => ({ type: STREAMS_LIST_SYNC_ERROR,
 export const setGamesPerRow = (num) => ({ type: SET_GAMES_PER_ROW, num })
 export const setStreamsPerRow = (num) => ({ type: SET_STREAMS_PER_ROW, num })
 
-const clientID = 'an1u57pqifgc1lanxdq4rvng5u6cow';
-const headers = {
-    'Client-ID': clientID
-}
+let accessToken = ''
 
-export const getGamesList = (url) => {
+export const getGamesList = (url, token = accessToken) => {
     return async dispatch => {
         dispatch(gameListSyncError(false))
-        try {
-            let response = await fetch(url, { headers: headers })
+        let response = await fetch(url, {
+            headers: {
+                'Client-ID': clientID,
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        if (response.status === 401) {
+            token = await refreshToken()
+            response = await fetch(url, {
+                headers: {
+                    'Client-ID': clientID,
+                    'Authorization': `Bearer ${token}`
+                }
+            })
             let fetchedData = await response.json()
             dispatch(setGamesList(fetchedData.data))
         }
-        catch(err) {
+        else if (response.status !== 200) {
             dispatch(gameListSyncError(true))
+        }
+        else {
+            let fetchedData = await response.json()
+            dispatch(setGamesList(fetchedData.data))
         }
     };
 };
 
-export const getStreamsList = (url, gameID = '') => {
+export const getStreamsList = (url, gameID = '', token = accessToken) => {
     return async dispatch => {
         dispatch(streamsListSyncError(false))
-        try {
-            let response = await fetch(`${url}${gameID}`, { headers: headers })
+        let response = await fetch(`${url}${gameID}`, {
+            headers: {
+                'Client-ID': clientID,
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        if (response.status === 401) {
+            token = await refreshToken()
+            response = await fetch(`${url}${gameID}`, {
+                headers: {
+                    'Client-ID': clientID,
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            let fetchedData = await response.json()
+            dispatch(setStreamsList(fetchedData.data))
+        }
+        else if (response.status !== 200) {
+            dispatch(streamsListSyncError(true))
+        }
+        else {
             let fetchedData = await response.json()
             dispatch(setStreamsList(fetchedData.data));
         }
-        catch(err) {
-            dispatch(streamsListSyncError(true))
-        }
     };
 };
+
+const refreshToken = async () => {
+    const data = {
+        client_id: clientID,
+        client_secret: clientSecret,
+        grant_type: 'client_credentials'
+    }
+
+    const response = await fetch('https://id.twitch.tv/oauth2/token', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    const fetchedData = await response.json()
+    accessToken = fetchedData.access_token
+    return fetchedData.access_token
+
+}

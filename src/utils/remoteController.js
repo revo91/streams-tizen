@@ -1,4 +1,4 @@
-export const remoteController = (event, refs, gamesList, selectedGame, gamesPerRow, selectGame) => {
+export const remoteController = (event, refs, gamesList, selectedGame, gamesPerRow, selectGame, history) => {
     switch (event.keyCode) {
         case 37: //LEFT arrow
             event.preventDefault()
@@ -42,7 +42,7 @@ export const remoteController = (event, refs, gamesList, selectedGame, gamesPerR
         case 16:
             break;
         case 10009: //RETURN button
-            window.location.reload()
+            history.goBack();
             break;
         default:
             break;

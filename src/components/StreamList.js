@@ -18,7 +18,7 @@ function StreamList(props) {
     };
 
     const keydownCallback = useCallback((event) => {
-        remoteController(event, refs, streamsList, selectedStream, streamsPerRow, selectStream)
+        remoteController(event, refs, streamsList, selectedStream, streamsPerRow, selectStream, props.history)
     }, [refs, streamsList, streamsPerRow, selectedStream, selectStream])
 
     const windowResizeCallback = useCallback(() => {
@@ -48,7 +48,7 @@ function StreamList(props) {
             setStreamsPerRow(numPerRow);
         }
     }, [refs, setStreamsPerRow])
-
+    
     return (
         <div className={syncError !== true ? "flexcontainer" : ""}>
             {syncError !== true ? streamsList && streamsList.length > 0 ? streamsList.map((stream, index) => {
