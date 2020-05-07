@@ -7,9 +7,9 @@ Using react+redux. Required application registration at:
 ```
 https://dev.twitch.tv/console
 ```
-Then filling Client-ID in:
+Then filling clientID and clientSecret in:
 ```
-/src/actions/manageStreamsList.js
+/src/config.js
 ```
 App needs to be built using:
 ```
