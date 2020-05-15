@@ -19,7 +19,7 @@ function StreamList(props) {
 
     const keydownCallback = useCallback((event) => {
         remoteController(event, refs, streamsList, selectedStream, streamsPerRow, selectStream, props.history)
-    }, [refs, streamsList, streamsPerRow, selectedStream, selectStream])
+    }, [refs, streamsList, streamsPerRow, selectedStream, selectStream, props.history])
 
     const windowResizeCallback = useCallback(() => {
         if (refs[0]) {

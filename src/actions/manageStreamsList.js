@@ -93,6 +93,7 @@ const refreshToken = async () => {
         }
     })
     const fetchedData = await response.json()
+    console.log(fetchedData)
     accessToken = fetchedData.access_token
     return fetchedData.access_token
 

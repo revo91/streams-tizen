@@ -12,11 +12,13 @@ function LiveStreamPlayer(props) {
 
     useEffect(() => {
         if (twitchPlayer.current._bridge === undefined) {
+            
             let options = {
                 width: document.documentElement.clientWidth,
                 height: document.documentElement.clientHeight,
                 channelId: props.match.params.user_id,
             };
+            console.log(options)
             twitchPlayer.current = new window.Twitch.Player('player', options);
             if (qualities.length > 0) {
                 setQuality(qualities[selectedQualityIndex].name, selectedQualityIndex, qualities[selectedQualityIndex].group)
