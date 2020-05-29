@@ -16,7 +16,7 @@ export const streamsListSyncError = (error) => ({ type: STREAMS_LIST_SYNC_ERROR,
 export const setGamesPerRow = (num) => ({ type: SET_GAMES_PER_ROW, num })
 export const setStreamsPerRow = (num) => ({ type: SET_STREAMS_PER_ROW, num })
 
-let accessToken = ''
+export let accessToken = ''
 
 export const getGamesList = (url, token = accessToken) => {
     return async dispatch => {
@@ -78,7 +78,7 @@ export const getStreamsList = (url, gameID = '', token = accessToken) => {
     };
 };
 
-const refreshToken = async () => {
+export const refreshToken = async () => {
     const data = {
         client_id: clientID,
         client_secret: clientSecret,
@@ -93,7 +93,6 @@ const refreshToken = async () => {
         }
     })
     const fetchedData = await response.json()
-    console.log(fetchedData)
     accessToken = fetchedData.access_token
     return fetchedData.access_token
 

@@ -4,6 +4,8 @@ import { connect } from 'react-redux';
 import { setPossibleQualities, setQuality, setQualitySelectorShown } from '../actions/manageQuality';
 import { playerQualityController, playerNavigationController } from '../utils/remoteController';
 import { useWindowKeydown } from '../hooks/useWindowEvent';
+import { accessToken, refreshToken } from '../actions/manageStreamsList'
+import { clientID } from '../config'
 
 function LiveStreamPlayer(props) {
     const timeout = useRef();
@@ -11,31 +13,52 @@ function LiveStreamPlayer(props) {
     const { qualities, selectedQualityIndex, setQuality, selectedQualityGroup, setQualitySelectorShown, qualitySelectionShown, setPossibleQualities } = props;
 
     useEffect(() => {
-        if (twitchPlayer.current._bridge === undefined) {
-            
-            let options = {
-                width: document.documentElement.clientWidth,
-                height: document.documentElement.clientHeight,
-                channelId: props.match.params.user_id,
-            };
-            console.log(options)
-            twitchPlayer.current = new window.Twitch.Player('player', options);
-            if (qualities.length > 0) {
-                setQuality(qualities[selectedQualityIndex].name, selectedQualityIndex, qualities[selectedQualityIndex].group)
-                twitchPlayer.current.setQuality(selectedQualityGroup)
+        const getStreamerNameFromID = async (id, token = accessToken) => {
+            let response = await fetch(`https://api.twitch.tv/helix/users?id=${id}`, {
+                headers: {
+                    'Client-ID': clientID,
+                    'Authorization': `Bearer ${token}`
+                },
+            })
+            if (response.status === 401) {
+                token = await refreshToken()
+                response = await fetch(`https://api.twitch.tv/helix/users?id=${id}`, {
+                    headers: {
+                        'Client-ID': clientID,
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
             }
-            else {
-                setQuality('Auto', 0, 'auto')
-                twitchPlayer.current.setQuality('auto')
-            }
-            twitchPlayer.current.addEventListener(window.Twitch.Player.PLAYING, () => {
-                twitchPlayer.current.setMuted(false)
-                twitchPlayer.current.setVolume(1.0);
-                twitchPlayer.current.getQualities()
-                setPossibleQualities(twitchPlayer.current.getQualities())
-            });
+            const fetchedData = await response.json()
+            return fetchedData.data
         }
-    }, [props.history, props.match.params.user_id, qualities, selectedQualityGroup, selectedQualityIndex, setPossibleQualities, setQuality])
+
+        getStreamerNameFromID(props.match.params.user_id).then(x => {
+            if (twitchPlayer.current._bridge === undefined) {
+                let options = {
+                    width: document.documentElement.clientWidth,
+                    height: document.documentElement.clientHeight,
+                    channel: x[0].login,
+                };
+                console.log(options)
+                twitchPlayer.current = new window.Twitch.Player('player', options);
+                if (qualities.length > 0) {
+                    setQuality(qualities[selectedQualityIndex].name, selectedQualityIndex, qualities[selectedQualityIndex].group)
+                    twitchPlayer.current.setQuality(selectedQualityGroup)
+                }
+                else {
+                    setQuality('Auto', 0, 'auto')
+                    twitchPlayer.current.setQuality('auto')
+                }
+                twitchPlayer.current.addEventListener(window.Twitch.Player.PLAYING, () => {
+                    twitchPlayer.current.setMuted(false)
+                    twitchPlayer.current.setVolume(1.0);
+                    twitchPlayer.current.getQualities()
+                    setPossibleQualities(twitchPlayer.current.getQualities())
+                });
+            }
+        })
+    }, [])
 
     const handleQualitySelectionMenu = useCallback(event => {
         const waitForMoreInputs = () => {
