@@ -1,10 +1,11 @@
-import { SET_STREAMS_LIST, SELECT_STREAM, STREAMS_LIST_SYNC_ERROR, SET_STREAMS_PER_ROW } from '../actions/manageStreamsList';
+import { SET_STREAMS_LIST, SELECT_STREAM, STREAMS_LIST_SYNC_ERROR, SET_STREAMS_PER_ROW, SET_STREAMS_LIST_PAGINATION } from '../actions/manageStreamsList';
 
 const initialState = {
     streamsList: [],
     selectedStream: 0,
     syncError: false,
-    streamsPerRow: 1
+    streamsPerRow: 1,
+    pagination: ''
 }
 
 export const streamsListReducer = (state = initialState, action) => {
@@ -28,6 +29,11 @@ export const streamsListReducer = (state = initialState, action) => {
             return {
                 ...state,
                 streamsPerRow: action.num
+            }
+        case SET_STREAMS_LIST_PAGINATION:
+            return {
+                ...state,
+                pagination: action.pagination
             }
         default:
             return state

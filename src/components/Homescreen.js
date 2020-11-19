@@ -5,13 +5,15 @@ import {
     Link
 } from "react-router-dom";
 import { connect } from 'react-redux';
-import { getGamesList, selectGame, setGamesList, selectStream, setGamesPerRow } from '../actions/manageStreamsList';
+import { selectGame, setGamesList, selectStream, setGamesPerRow, setGamesListPagination } from '../actions/manageStreamsList';
 import ErrorScreen from './Error';
 import { useWindowResize, useWindowKeydown } from '../hooks/useWindowEvent';
 import { remoteController } from '../utils/remoteController';
+import { getGamesList } from '../services/fetch.service';
+import { itemsNumberPerCall } from '../config';
 
 export function Homescreen(props) {
-    const { setGamesList, getGamesList, selectStream, setGamesPerRow, selectedGame, gamesList, selectGame, gamesPerRow, syncError } = props;
+    const { setGamesList, selectStream, setGamesPerRow, selectedGame, gamesList, selectGame, gamesPerRow, syncError, setGamesListPagination, pagination } = props;
     const refs = [];
     const setRef = (ref) => {
         refs.push(ref);
@@ -35,9 +37,26 @@ export function Homescreen(props) {
     useEffect(() => {
         //refresh list
         setGamesList([]);
-        getGamesList('https://api.twitch.tv/helix/games/top?first=100');
+        getGamesList(`https://api.twitch.tv/helix/games/top?first=${itemsNumberPerCall}`).then(res => {
+            if (res && res.status === 200) {
+                setGamesList(res.data)
+                setGamesListPagination(res.pagination)
+            }
+        })
         selectStream(0);
-    }, [setGamesList, getGamesList, selectStream]);
+    }, [setGamesList, selectStream, setGamesListPagination]);
+
+    useEffect(() => {
+        //load more items when reaching bottom
+        if (gamesList.length > 0 && gamesList.length - selectedGame < 16) {
+            getGamesList(`https://api.twitch.tv/helix/games/top?first=${itemsNumberPerCall}&after=${pagination}`).then(res => {
+                if (res && res.status === 200) {
+                    setGamesList([...gamesList, ...res.data])
+                    setGamesListPagination(res.pagination)
+                }
+            })
+        }
+    }, [selectedGame, gamesList, pagination, setGamesList, setGamesListPagination])
 
     useEffect(() => {
         if (refs[0]) {
@@ -68,16 +87,17 @@ const mapStateToProps = (state) => {
         gamesList: state.gamesListReducer.gamesList,
         selectedGame: state.gamesListReducer.selectedGame,
         syncError: state.gamesListReducer.syncError,
-        gamesPerRow: state.gamesListReducer.gamesPerRow
+        gamesPerRow: state.gamesListReducer.gamesPerRow,
+        pagination: state.gamesListReducer.pagination
     }
 }
 
 const mapDispatchToProps = {
-    getGamesList,
     selectGame,
     selectStream,
     setGamesList,
-    setGamesPerRow
+    setGamesPerRow,
+    setGamesListPagination
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Homescreen);

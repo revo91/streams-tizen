@@ -4,14 +4,15 @@ import {
     Link
 } from "react-router-dom";
 import { connect } from 'react-redux';
-import { getStreamsList, selectStream, setStreamsList, setStreamsPerRow } from '../actions/manageStreamsList';
+import { selectStream, setStreamsList, setStreamsPerRow, setStreamsListPagination } from '../actions/manageStreamsList';
 import ErrorScreen from './Error';
 import { FaUserAlt } from 'react-icons/fa';
 import { useWindowResize, useWindowKeydown } from '../hooks/useWindowEvent';
 import { remoteController } from '../utils/remoteController';
+import { getStreamsList } from '../services/fetch.service';
 
 function StreamList(props) {
-    const { getStreamsList, selectStream, setStreamsList, streamsPerRow, streamsList, selectedStream, setStreamsPerRow, syncError } = props;
+    const { selectStream, setStreamsList, streamsPerRow, streamsList, selectedStream, setStreamsPerRow, syncError, setStreamsListPagination, pagination } = props;
     const refs = []
     const setRef = (ref) => {
         refs.push(ref);
@@ -37,8 +38,23 @@ function StreamList(props) {
         //refresh list
         setStreamsList([])
         //get list of livestreams
-        getStreamsList("https://api.twitch.tv/helix/streams?first=100&game_id=", props.match.params.game_id)
-    }, [getStreamsList, setStreamsList, props.match.params.game_id]);
+        getStreamsList(`https://api.twitch.tv/helix/streams?first=24&game_id=${props.match.params.game_id}`).then(res => {
+            setStreamsList(res.data)
+            setStreamsListPagination(res.pagination)
+        })
+    }, [setStreamsList, props.match.params.game_id, setStreamsListPagination]);
+
+    useEffect(() => {
+        //load more items when reaching bottom
+        if (streamsList.length > 0 && streamsList.length - selectedStream < 12) {
+            getStreamsList(`https://api.twitch.tv/helix/streams?first=24&after=${pagination}&game_id=${props.match.params.game_id}`).then(res => {
+                if (res && res.status === 200) {
+                    setStreamsList([...streamsList, ...res.data])
+                    setStreamsListPagination(res.pagination)
+                }
+            })
+        }
+    }, [selectedStream, pagination, props.match.params.game_id, setStreamsList, setStreamsListPagination, streamsList])
 
     useEffect(() => {
         if (refs[0]) {
@@ -48,7 +64,7 @@ function StreamList(props) {
             setStreamsPerRow(numPerRow);
         }
     }, [refs, setStreamsPerRow])
-    
+
     return (
         <div className={syncError !== true ? "flexcontainer" : ""}>
             {syncError !== true ? streamsList && streamsList.length > 0 ? streamsList.map((stream, index) => {
@@ -71,15 +87,16 @@ const mapStateToProps = (state) => {
         streamsList: state.streamsListReducer.streamsList,
         selectedStream: state.streamsListReducer.selectedStream,
         syncError: state.streamsListReducer.syncError,
-        streamsPerRow: state.streamsListReducer.streamsPerRow
+        streamsPerRow: state.streamsListReducer.streamsPerRow,
+        pagination: state.streamsListReducer.pagination
     }
 }
 
 const mapDispatchToProps = {
-    getStreamsList,
     selectStream,
     setStreamsList,
-    setStreamsPerRow
+    setStreamsPerRow,
+    setStreamsListPagination
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(StreamList);

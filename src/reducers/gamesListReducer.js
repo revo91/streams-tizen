@@ -1,10 +1,11 @@
-import { SET_GAMES_LIST, SELECT_GAME, GAME_LIST_SYNC_ERROR, SET_GAMES_PER_ROW } from '../actions/manageStreamsList';
+import { SET_GAMES_LIST, SELECT_GAME, GAME_LIST_SYNC_ERROR, SET_GAMES_PER_ROW, SET_GAMES_LIST_PAGINATION } from '../actions/manageStreamsList';
 
 const initialState = {
     gamesList: [],
     selectedGame: 0,
     syncError: false,
-    gamesPerRow: 1
+    gamesPerRow: 1,
+    pagination: ''
 }
 
 export const gamesListReducer = (state = initialState, action) => {
@@ -28,6 +29,11 @@ export const gamesListReducer = (state = initialState, action) => {
             return {
                 ...state,
                 gamesPerRow: action.num
+            }
+        case SET_GAMES_LIST_PAGINATION:
+            return {
+                ...state,
+                pagination: action.pagination
             }
         default:
             return state

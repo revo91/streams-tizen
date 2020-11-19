@@ -4,8 +4,7 @@ import { connect } from 'react-redux';
 import { setPossibleQualities, setQuality, setQualitySelectorShown } from '../actions/manageQuality';
 import { playerQualityController, playerNavigationController } from '../utils/remoteController';
 import { useWindowKeydown } from '../hooks/useWindowEvent';
-import { accessToken, refreshToken } from '../actions/manageStreamsList'
-import { clientID } from '../config'
+import { getStreamerNameFromID } from '../services/fetch.service';
 
 function LiveStreamPlayer(props) {
     const timeout = useRef();
@@ -13,34 +12,15 @@ function LiveStreamPlayer(props) {
     const { qualities, selectedQualityIndex, setQuality, selectedQualityGroup, setQualitySelectorShown, qualitySelectionShown, setPossibleQualities } = props;
 
     useEffect(() => {
-        const getStreamerNameFromID = async (id, token = accessToken) => {
-            let response = await fetch(`https://api.twitch.tv/helix/users?id=${id}`, {
-                headers: {
-                    'Client-ID': clientID,
-                    'Authorization': `Bearer ${token}`
-                },
-            })
-            if (response.status === 401) {
-                token = await refreshToken()
-                response = await fetch(`https://api.twitch.tv/helix/users?id=${id}`, {
-                    headers: {
-                        'Client-ID': clientID,
-                        'Authorization': `Bearer ${token}`
-                    }
-                })
-            }
-            const fetchedData = await response.json()
-            return fetchedData.data
-        }
-
         getStreamerNameFromID(props.match.params.user_id).then(x => {
             if (twitchPlayer.current._bridge === undefined) {
                 let options = {
                     width: document.documentElement.clientWidth,
                     height: document.documentElement.clientHeight,
-                    channel: x[0].login,
+                    controls: false,
+                    channel: x.data[0].login
                 };
-                console.log(options)
+
                 twitchPlayer.current = new window.Twitch.Player('player', options);
                 if (qualities.length > 0) {
                     setQuality(qualities[selectedQualityIndex].name, selectedQualityIndex, qualities[selectedQualityIndex].group)
@@ -51,6 +31,7 @@ function LiveStreamPlayer(props) {
                     twitchPlayer.current.setQuality('auto')
                 }
                 twitchPlayer.current.addEventListener(window.Twitch.Player.PLAYING, () => {
+                    console.log('PLAYING')
                     twitchPlayer.current.setMuted(false)
                     twitchPlayer.current.setVolume(1.0);
                     twitchPlayer.current.getQualities()
@@ -58,7 +39,22 @@ function LiveStreamPlayer(props) {
                 });
             }
         })
-    }, [])
+    }, [props.match.params.user_id])
+
+    useEffect(() => {
+        let timer = setInterval(()=>{
+            if (document.activeElement === document.getElementsByTagName("iframe")[0]) {
+                console.log('iframe has focus');
+                window.parent.focus()
+            } else {
+                console.log('iframe not focused');
+                
+            }
+        },1000)
+        return () => {
+            clearInterval(timer)
+          };
+    },[])
 
     const handleQualitySelectionMenu = useCallback(event => {
         const waitForMoreInputs = () => {
@@ -84,7 +80,7 @@ function LiveStreamPlayer(props) {
                     return <p className={`quality-selection-item${qualities[selectedQualityIndex].name === quality.name ? '-selected' : ''}`} key={quality.name}>{quality.name}</p>
                 }) : null}
             </div>
-            <div className='overlay'></div>
+            {/* <div className='overlay'></div> */}
         </React.Fragment>
     )
 }
