@@ -76,7 +76,6 @@ export const playerNavigationController = (event, twitchPlayer, history) => {
             if (twitchPlayer.isPaused()) {
                 twitchPlayer.play()
             }
-
             else {
                 twitchPlayer.pause()
             }

@@ -86,7 +86,6 @@ export const getStreamerNameFromID = async (id) => {
   })
   if (response.status === 200) {
     const streamer = await response.json()
-    console.log(streamer)
     return {
       status: response.status,
       data: streamer.data

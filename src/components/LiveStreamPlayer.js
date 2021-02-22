@@ -12,13 +12,13 @@ function LiveStreamPlayer(props) {
     const { qualities, selectedQualityIndex, setQuality, selectedQualityGroup, setQualitySelectorShown, qualitySelectionShown, setPossibleQualities } = props;
 
     useEffect(() => {
-        getStreamerNameFromID(props.match.params.user_id).then(x => {
+        getStreamerNameFromID(props.match.params.user_id).then(streamer => {
             if (twitchPlayer.current._bridge === undefined) {
                 let options = {
                     width: document.documentElement.clientWidth,
                     height: document.documentElement.clientHeight,
                     controls: false,
-                    channel: x.data[0].login
+                    channel: streamer.data[0].login
                 };
 
                 twitchPlayer.current = new window.Twitch.Player('player', options);
@@ -31,7 +31,6 @@ function LiveStreamPlayer(props) {
                     twitchPlayer.current.setQuality('auto')
                 }
                 twitchPlayer.current.addEventListener(window.Twitch.Player.PLAYING, () => {
-                    console.log('PLAYING')
                     twitchPlayer.current.setMuted(false)
                     twitchPlayer.current.setVolume(1.0);
                     twitchPlayer.current.getQualities()
@@ -39,22 +38,19 @@ function LiveStreamPlayer(props) {
                 });
             }
         })
-    }, [props.match.params.user_id])
+        // eslint-disable-next-line
+    }, [props.match.params.user_id, setQuality])
 
     useEffect(() => {
-        let timer = setInterval(()=>{
+        let timer = setInterval(() => {
             if (document.activeElement === document.getElementsByTagName("iframe")[0]) {
-                console.log('iframe has focus');
                 window.parent.focus()
-            } else {
-                console.log('iframe not focused');
-                
             }
-        },1000)
+        }, 1000)
         return () => {
             clearInterval(timer)
-          };
-    },[])
+        };
+    }, [])
 
     const handleQualitySelectionMenu = useCallback(event => {
         const waitForMoreInputs = () => {
