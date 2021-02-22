@@ -1,7 +1,6 @@
 # Streams
-## Application for watching streams from Twitch directly on Samsung Tizen powered TV
 ![logo](demo/logo.png)
-
+## Application for watching streams from Twitch directly on Samsung Tizen powered TV
 ![demo1](demo/streams-tizen1.jpg)
 ![demo2](demo/streams-tizen2.jpg)
 
