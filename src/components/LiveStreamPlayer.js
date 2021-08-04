@@ -9,7 +9,7 @@ import { getStreamerNameFromID } from '../services/fetch.service';
 function LiveStreamPlayer(props) {
     const timeout = useRef();
     const twitchPlayer = useRef();
-    const { qualities, selectedQualityIndex, setQuality, selectedQualityGroup, setQualitySelectorShown, qualitySelectionShown, setPossibleQualities } = props;
+    const { qualities, selectedQualityIndex, setQuality, setQualitySelectorShown, qualitySelectionShown, setPossibleQualities } = props;
 
     useEffect(() => {
         getStreamerNameFromID(props.match.params.user_id).then(streamer => {
@@ -20,26 +20,16 @@ function LiveStreamPlayer(props) {
                     controls: false,
                     channel: streamer.data[0].login
                 };
-
                 twitchPlayer.current = new window.Twitch.Player('player', options);
-                if (qualities.length > 0) {
-                    setQuality(qualities[selectedQualityIndex].name, selectedQualityIndex, qualities[selectedQualityIndex].group)
-                    twitchPlayer.current.setQuality(selectedQualityGroup)
-                }
-                else {
-                    setQuality('Auto', 0, 'auto')
-                    twitchPlayer.current.setQuality('auto')
-                }
+
                 twitchPlayer.current.addEventListener(window.Twitch.Player.PLAYING, () => {
                     twitchPlayer.current.setMuted(false)
                     twitchPlayer.current.setVolume(1.0);
-                    twitchPlayer.current.getQualities()
                     setPossibleQualities(twitchPlayer.current.getQualities())
                 });
             }
         })
-        // eslint-disable-next-line
-    }, [props.match.params.user_id, setQuality])
+    }, [props.match.params.user_id, setPossibleQualities, setQuality])
 
     useEffect(() => {
         let timer = setInterval(() => {
@@ -51,6 +41,10 @@ function LiveStreamPlayer(props) {
             clearInterval(timer)
         };
     }, [])
+
+    useEffect(() => {
+        setQuality('Auto', 0, 'auto')
+    }, [setQuality])
 
     const handleQualitySelectionMenu = useCallback(event => {
         const waitForMoreInputs = () => {

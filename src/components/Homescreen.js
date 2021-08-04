@@ -1,5 +1,5 @@
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import '../styles/index.scss';
 import {
     Link
@@ -14,10 +14,16 @@ import { itemsNumberPerCall } from '../config';
 
 export function Homescreen(props) {
     const { setGamesList, selectStream, setGamesPerRow, selectedGame, gamesList, selectGame, gamesPerRow, syncError, setGamesListPagination, pagination } = props;
-    const refs = [];
+    const refs = useMemo(() => {
+        if (gamesList) {
+            return [];
+        }
+    }, [gamesList]);
+
     const setRef = (ref) => {
         refs.push(ref);
     };
+    
     const keydownCallback = useCallback((event) => {
         remoteController(event, refs, gamesList, selectedGame, gamesPerRow, selectGame, props.history)
     }, [refs, gamesList, gamesPerRow, selectedGame, selectGame, props.history])

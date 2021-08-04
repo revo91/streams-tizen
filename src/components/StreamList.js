@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import '../styles/index.scss';
 import {
     Link
@@ -13,7 +13,12 @@ import { getStreamsList } from '../services/fetch.service';
 
 function StreamList(props) {
     const { selectStream, setStreamsList, streamsPerRow, streamsList, selectedStream, setStreamsPerRow, syncError, setStreamsListPagination, pagination } = props;
-    const refs = []
+    const refs = useMemo(() => {
+        if (streamsList) {
+            return [];
+        }
+    }, [streamsList]);
+
     const setRef = (ref) => {
         refs.push(ref);
     };

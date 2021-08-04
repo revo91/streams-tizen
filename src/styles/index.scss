@@ -110,6 +110,7 @@ $backgroundColor: #292929;
     font-weight: bold;
 }
 
+
 body {
     margin: 0;
     font-family: 'Quicksand', 'Segoe UI', 'Roboto', 'Oxygen',
@@ -132,7 +133,7 @@ body {
 .flexitemscategories {
     transform: scale(0);
     width: 285px;
-    height: 100%;
+    height: auto;
     padding: 10px;
     transition: $transitionTime;
 
@@ -144,6 +145,16 @@ body {
     text-decoration: none;
     color: $textColor;
 }
+
+@media screen and (max-width: 640px) {
+    .flexitemscategories {
+        width: 200px;
+        img {
+            height: auto;
+            width: 200px
+        }
+    }
+  }
 
 .flexitemsstreams {
     transform: scale(0);
